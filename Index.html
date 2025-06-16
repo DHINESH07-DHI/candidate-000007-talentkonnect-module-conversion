@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TalentKonnect | Token Conversion</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #F8FAFC;
+      color: #222;
+      padding: 20px;
+    }
+
+    .summary-box {
+      background: #DFF6FF;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .btn {
+      background-color: #1D3557;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .tooltip {
+      font-size: 12px;
+      color: #555;
+      margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Credit-to-Token Conversion</h2>
+
+  <!-- Conversion Summary -->
+  <div class="summary-box">
+    <p><strong>Credits:</strong> <span id="creditBalance">100</span></p>
+    <p><strong>TokenCredits:</strong> <span id="tokenBalance">0</span></p>
+    <button class="btn" onclick="confirmConversion()">Convert 20% to Tokens</button>
+    <p class="tooltip">💡 After 2 non-winning draws, 20% of your credits convert to non-fiat TalentTokens.</p>
+  </div>
+
+  <script>
+    // ========== Inline Backend Simulation ==========
+
+    let backend = {
+      credits: 100,
+      tokens: 0,
+      nonWinningDraws: 2
+    };
+
+    // Simulate GET /api/tokens/balance
+    function getTokenBalance() {
+      return backend.tokens;
+    }
+
+    // Simulate POST /api/credits/convert
+    function convertCreditsToTokens() {
+      if (backend.nonWinningDraws >= 2) {
+        let converted = Math.floor(backend.credits * 0.2);
+        backend.credits -= converted;
+        backend.tokens += converted;
+        return { success: true, converted: converted };
+      } else {
+        return { success: false, message: "Draw condition not met" };
+      }
+    }
+
+    // ========== Frontend Logic ==========
+
+    function updateUI() {
+      document.getElementById("creditBalance").textContent = backend.credits;
+      document.getElementById("tokenBalance").textContent = getTokenBalance();
+    }
+
+    function confirmConversion() {
+      if (confirm("Convert 20% of your credits into TalentTokens?")) {
+        let result = convertCreditsToTokens();
+        if (result.success) {
+          alert(`✅ Converted ${result.converted} credits into tokens.`);
+          updateUI();
+        } else {
+          alert("⚠️ Conversion not allowed yet. Try after 2 non-winning draws.");
+        }
+      }
+    }
+
+    // On load
+    updateUI();
+  </script>
+</body>
+</html>
