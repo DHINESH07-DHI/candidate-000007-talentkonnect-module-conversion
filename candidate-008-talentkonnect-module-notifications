@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TalentKonnect | Notifications</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #F9F9FB;
+      color: #333;
+      padding: 20px;
+    }
+
+    .banner {
+      background-color: #FF6B6B;
+      color: white;
+      padding: 14px 16px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      position: relative;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .dismiss-btn {
+      position: absolute;
+      right: 12px;
+      top: 8px;
+      background: none;
+      border: none;
+      font-size: 20px;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+    }
+
+    .btn {
+      background-color: #1D3557;
+      color: white;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    h2 {
+      margin-bottom: 12px;
+    }
+
+    .toggle-container {
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Notifications & Reminders</h2>
+
+  <!-- Banner Slot -->
+  <div id="bannerContainer"></div>
+
+  <!-- Push Notification Toggle -->
+  <div class="toggle-container">
+    <p><strong>Push Alerts:</strong></p>
+    <button id="toggleBtn" class="btn" onclick="togglePush()">Unsubscribe</button>
+  </div>
+
+  <script>
+    // ========== Backend Simulation ==========
+    let pushEnabled = true;
+
+    const mockDB = {
+      notifications: [
+        { id: 1, message: "🎉 You've earned 20 credits. Join today's draw!", read: false },
+        { id: 2, message: "⏰ Reminder: Talent Draw starts in 30 minutes!", read: false }
+      ],
+      logs: []
+    };
+
+    function fetchNotifications() {
+      return new Promise(resolve => {
+        const pending = mockDB.notifications.filter(n => !n.read);
+        setTimeout(() => resolve(pending), 300);
+      });
+    }
+
+    function markAsRead(id) {
+      return new Promise(resolve => {
+        const notif = mockDB.notifications.find(n => n.id === id);
+        if (notif) notif.read = true;
+        console.log(`✅ Notification ${id} marked as read`);
+        resolve({ success: true });
+      });
+    }
+
+    function logBlocked(reason) {
+      mockDB.logs.push({
+        time: new Date().toISOString(),
+        reason: reason
+      });
+      console.warn("🚫 Push Blocked:", reason);
+    }
+
+    // ========== UI Logic ==========
+    async function loadNotifications() {
+      const notifs = await fetchNotifications();
+      if (notifs.length > 0) {
+        showBanner(notifs[0].id, notifs[0].message);
+      }
+    }
+
+    function showBanner(id, message) {
+      const container = document.getElementById("bannerContainer");
+      container.innerHTML = `
+        <div class="banner" id="notif-${id}">
+          ${message}
+          <button class="dismiss-btn" onclick="dismissNotification(${id})">&times;</button>
+        </div>
+      `;
+    }
+
+    async function dismissNotification(id) {
+      await markAsRead(id);
+      const el = document.getElementById(`notif-${id}`);
+      if (el) el.remove();
+    }
+
+    function togglePush() {
+      pushEnabled = !pushEnabled;
+      const btn = document.getElementById("toggleBtn");
+      btn.textContent = pushEnabled ? "Unsubscribe" : "Subscribe";
+
+      if (!pushEnabled) {
+        logBlocked("user_blocked");
+      }
+    }
+
+    window.onload = loadNotifications;
+  </script>
+</body>
+</html>
